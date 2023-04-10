@@ -14,6 +14,7 @@ static bool waiting = true;
 static bool isAnimationFinished = false;
 static bool addedJsLoadErrorObserver = false;
 static UIView* loadingView = nil;
+static UIView* backgroundView = nil;
 
 @implementation RNSplashScreen
 - (dispatch_queue_t)methodQueue {
@@ -51,8 +52,11 @@ RCT_EXPORT_MODULE(SplashScreen)
 
 + (void)showLottieSplash:(UIView*)animationView inRootView:(UIView*)rootView {
   loadingView = animationView;
+  backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height)];
+  backgroundView.backgroundColor = UIColor.whiteColor;
   waiting = false;
-  [rootView addSubview:animationView];
+  [rootView addSubview:backgroundView];
+  [backgroundView addSubview:animationView];
 }
 
 + (void)hide {
@@ -67,7 +71,10 @@ RCT_EXPORT_MODULE(SplashScreen)
                        dispatch_get_main_queue(), ^{
                          [UIView animateWithDuration:0.2
                          animations:^{loadingView.alpha = 0.0;}
-                         completion:^(BOOL finished){ [loadingView removeFromSuperview]; }];
+                         completion:^(BOOL finished){ 
+                          [backgroundView removeFromSuperview];
+                          [loadingView removeFromSuperview];
+                        }];
                        });
       }
   }
@@ -78,6 +85,7 @@ RCT_EXPORT_MODULE(SplashScreen)
     if (waiting) {
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
                      dispatch_get_main_queue(), ^{
+                       [backgroundView removeFromSuperview];
                        [loadingView removeFromSuperview];
                      });
     }
